@@ -8,6 +8,12 @@ public class Rocket : MonoBehaviour {
     AudioSource audioSource;
     bool audioToggle;
 
+    [SerializeField] float thrust = 20f;
+    float thrustThisFrame;
+
+    [SerializeField] float rcsThrust = 200f;
+    float rotationThisFrame;
+
     // Use this for initialization
     void Start()
     {
@@ -18,20 +24,19 @@ public class Rocket : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        ProcessInput();
+        Thrust();
+        Rotate();
     }
 
-    private void ProcessInput()
+    private void OnCollisionEnter(Collision collision)
     {
-        Thrust();
-
-        if (Input.GetKey((KeyCode.A)))
-        {
-            transform.Rotate(Vector3.forward);
-        }
-        else if (Input.GetKey((KeyCode.D)))
-        {
-            transform.Rotate(-Vector3.forward);
+        switch (collision.gameObject.tag) {
+            case "Friendly":
+                print("Friendly");
+                break;
+            case "Hostile":
+                print("Hostile");
+                break;
         }
     }
 
@@ -39,7 +44,8 @@ public class Rocket : MonoBehaviour {
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            rigidBody.AddRelativeForce(Vector3.up);
+            thrustThisFrame = thrust * Time.deltaTime;
+            rigidBody.AddRelativeForce(thrust * Vector3.up);
             if (!audioSource.isPlaying)
             {
                 audioSource.Play();
@@ -49,5 +55,23 @@ public class Rocket : MonoBehaviour {
         {
             audioSource.Stop();
         }
+    }
+
+    private void Rotate()
+    {
+        if (Input.GetKey(KeyCode.A))
+        {
+            rigidBody.freezeRotation = true;
+            rotationThisFrame = rcsThrust * Time.deltaTime;
+            transform.Rotate(rotationThisFrame * Vector3.forward);
+        }
+        else if (Input.GetKey(KeyCode.D))
+        {
+            rigidBody.freezeRotation = true;
+            rotationThisFrame = rcsThrust * Time.deltaTime;
+            transform.Rotate(-rotationThisFrame * Vector3.forward);
+        }
+
+        rigidBody.freezeRotation = false;
     }
 }
